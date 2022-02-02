@@ -3,19 +3,32 @@ import { FiArrowLeft, FiMail, FiUser, FiLock } from "react-icons/fi";
 import { FormHandles } from "@unform/core";
 import { Form } from "@unform/web";
 import * as Yup from "yup";
+import { Link, useHistory } from "react-router-dom";
+import api from "../../services/api";
+
+import { useToast } from "../../hooks/toast";
+
 import getValidationErrors from "../../utils/getValidationErrors";
 
-import { Container, Content, Background } from "./styles";
+import { Container, Content, AnimationContainer, Background } from "./styles";
 import logoImg from "../../assets/logo.svg";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 
+interface SignUpFormData {
+  name: string;
+  email: string;
+  password: string;
+}
+
 const SignUp: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
-  // formRef.current.
+  const { addToast } = useToast();
+  const history = useHistory();
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  const handleSubmit = useCallback(async (data: object) => {
+  const handleSubmit = useCallback(
+    async (data: SignUpFormData) => {
     console.log(data);
     try {
       // eslint-disable-next-line no-unused-expressions
@@ -33,40 +46,60 @@ const SignUp: React.FC = () => {
       await schema.validate(data, {
         abortEarly: false,
       });
+
+      await api.post("/users", data);
+      history.push("/");
+      addToast({
+        type: "success",
+        title: "Cadastro realizado!",
+        description: "Você já pode fazer seu logon no GoBarbe!",
+      });
     } catch (err) {
-      const errors = getValidationErrors(err as Yup.ValidationError);
-      // eslint-disable-next-line no-unused-expressions
-      formRef.current?.setErrors(errors);
-      console.log(errors);
+      if (err instanceof Yup.ValidationError) {
+        const errors = getValidationErrors(err as Yup.ValidationError);
+        // eslint-disable-next-line no-unused-expressions
+        formRef.current?.setErrors(errors);
+        console.log(errors);
+      }
+
+      addToast({
+        type: "error",
+        title: "Erro no Cadastro",
+        description: "Ocorreu um erro ao fazer o cadastro, tente novamente",
+      });
     }
-  }, []);
+  },
+    [addToast, history]
+  );
 
   return (
     <Container>
       <Background />
 
       <Content>
-        <img src={logoImg} alt="GoBarber" />
+        <AnimationContainer>
+          <img src={logoImg} alt="GoBarber" />
 
-        <Form ref={formRef} onSubmit={handleSubmit}>
-          <h1>Faça seu Cadastro</h1>
+          <Form ref={formRef} onSubmit={handleSubmit}>
+            <h1>Faça seu Cadastro</h1>
 
-          <Input name="name" icon={FiUser} placeholder="Nome" />
-          <Input name="email" icon={FiMail} placeholder="E-mail" />
-          <Input
-            name="password"
-            icon={FiLock}
-            placeholder="Senha"
-            type="password"
-          />
+            <Input name="name" icon={FiUser} placeholder="Nome" />
+            <Input name="email" icon={FiMail} placeholder="E-mail" />
+            <Input
+              name="password"
+              icon={FiLock}
+              placeholder="Senha"
+              type="password"
+            />
 
-          <Button type="submit">Cadastrar</Button>
-        </Form>
+            <Button type="submit">Cadastrar</Button>
+          </Form>
 
-        <a href="login">
-          <FiArrowLeft />
-          Voltar para Logon
-        </a>
+          <Link to="/">
+            <FiArrowLeft />
+            Voltar para Logon
+          </Link>
+        </AnimationContainer>
       </Content>
     </Container>
   );
