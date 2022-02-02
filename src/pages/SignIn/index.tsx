@@ -1,8 +1,10 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useContext } from "react";
 import { FiLogIn, FiMail, FiLock } from "react-icons/fi";
 import { FormHandles } from "@unform/core";
 import { Form } from "@unform/web";
 import * as Yup from "yup";
+import { useAuth } from "../../hooks/auth";
+import { useToast } from "../../hooks/toast";
 import getValidationErrors from "../../utils/getValidationErrors";
 
 import { Container, Content, Background } from "./styles";
@@ -12,33 +14,55 @@ import Input from "../../components/Input";
 import Button from "../../components/Button";
 // import { useCallback, useRef } from "react";
 
+interface SignInFormData {
+  email: string;
+  password: string;
+}
+
 const SignIn: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   // formRef.current.
-
+  const { user, signIn } = useAuth();
+  const { addToast } = useToast();
+  console.log(user);
   // eslint-disable-next-line @typescript-eslint/ban-types
-  const handleSubmit = useCallback(async (data: object) => {
-    console.log(data);
-    try {
-      // eslint-disable-next-line no-unused-expressions
-      formRef.current?.setErrors({});
-      const schema = Yup.object().shape({
-        email: Yup.string()
-          .required("E-mail obrigatório")
-          .email("Digite um email válido"),
-        password: Yup.string().required("Senha obrigatória"),
-      });
+  const handleSubmit = useCallback(
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    async (data: SignInFormData) => {
+      try {
+        // eslint-disable-next-line no-unused-expressions
+        formRef.current?.setErrors({});
+        const schema = Yup.object().shape({
+          email: Yup.string()
+            .required("E-mail obrigatório")
+            .email("Digite um email válido"),
+          password: Yup.string().required("Senha obrigatória"),
+        });
+        await schema.validate(data, {
+          abortEarly: false,
+        });
+        await signIn({
+          email: data.email,
+          password: data.password,
+        });
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          const errors = getValidationErrors(err as Yup.ValidationError);
+          // eslint-disable-next-line no-unused-expressions
+          formRef.current?.setErrors(errors);
+          console.log(errors);
+        }
 
-      await schema.validate(data, {
-        abortEarly: false,
-      });
-    } catch (err) {
-      const errors = getValidationErrors(err as Yup.ValidationError);
-      // eslint-disable-next-line no-unused-expressions
-      formRef.current?.setErrors(errors);
-      console.log(errors);
-    }
-  }, []);
+        addToast({
+          type: "error",
+          title: "Erro na autenticação",
+          description:
+            "Ocorreu um erro ao fazer o login, cheque as credenciais",
+        });
+      }
+    },
+    [signIn, addToast]
+  );
 
   return (
     <Container>

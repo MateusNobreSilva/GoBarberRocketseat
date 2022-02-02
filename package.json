@@ -10,7 +10,7 @@
     "@types/styled-components": "^5.1.2",
     "@unform/core": "^2.1.5",
     "@unform/web": "^2.1.6",
-    "axios": "^0.19.2",
+    "axios": "^0.25.0",
     "cra-template-typescript": "1.0.3",
     "polished": "^4.1.4",
     "react": "^17.0.1",
@@ -20,6 +20,7 @@
     "react-scripts": "3.4.1",
     "styled-components": "^5.3.3",
     "typescript": "^3.9.7",
+    "uuidv4": "^6.2.12",
     "yup": "^0.32.11"
   },
   "scripts": {
