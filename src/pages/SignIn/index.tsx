@@ -26,7 +26,7 @@ const SignIn: React.FC = () => {
   // formRef.current.
   const { user, signIn } = useAuth();
   const { addToast } = useToast();
-  const { history } = useHistory();
+  const history = useHistory();
   console.log(user);
   // eslint-disable-next-line @typescript-eslint/ban-types
   const handleSubmit = useCallback(
