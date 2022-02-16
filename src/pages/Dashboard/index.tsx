@@ -6,6 +6,7 @@ import "react-day-picker/lib/style.css";
 import { isToday, format } from "date-fns";
 // import ptBr from "date-fns/locale/pt-BR";
 import ptBR from "date-fns/esm/locale/pt-BR/index.js";
+import { parseISO } from "date-fns/esm";
 import {
   Container,
   Header,
@@ -22,7 +23,6 @@ import {
 import logoImg from "../../assets/logo.svg";
 import { useAuth } from "../../hooks/auth";
 import api from "../../services/api";
-import { parseISO } from "date-fns/esm";
 
 // eslint-disable-next-line @typescript-eslint/class-name-casing
 interface monthAvailabilityItem {
@@ -33,6 +33,7 @@ interface monthAvailabilityItem {
 interface Appointment {
   id: string;
   date: string;
+  hourFormatted: string;
   user: {
     name: string;
     avatar_url: string;
@@ -95,7 +96,16 @@ const Dashboard: React.FC = () => {
         },
       })
       .then((response) => {
-        setAppointments(response.data);
+        const appointmentsFormatted = response.data.map(
+          (appointment: { date: string }) => {
+            return {
+              ...appointment,
+              hourFormatted: format(parseISO(appointment.date), "HH:mm"),
+            };
+          }
+        );
+        setAppointments(appointmentsFormatted);
+        // eslint-disable-next-line no-console
         console.log(response.data);
       });
   }, [selectedDate]);
@@ -115,6 +125,7 @@ const Dashboard: React.FC = () => {
   }, [currentMonth, monthAvailability]);
 
   // eslint-disable-next-line no-redeclare
+  // eslint-disable-next-line no-console
   console.log(user);
 
   const selectedDateAsText = useMemo(() => {
@@ -175,10 +186,12 @@ const Dashboard: React.FC = () => {
             <strong>Manhã</strong>
 
             {morningAppointments.map((appointment) => (
+
               <Appointment>
+                <p style={{ color: "white" }}>ici{appointment.user.name}</p>
                 <span>
                   <FiClock />
-                  08:00
+                  {appointment.hourFormatted}
                 </span>
 
                 <div>
